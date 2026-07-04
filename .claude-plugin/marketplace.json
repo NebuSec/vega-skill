@@ -1,0 +1,16 @@
+{
+  "name": "nebusec",
+  "description": "NebuSec tools for coding agents",
+  "owner": {
+    "name": "NebuSec",
+    "email": "vega@nebusec.ai"
+  },
+  "plugins": [
+    {
+      "name": "vega-cli",
+      "description": "Run Vega security scans and query findings from the command line.",
+      "version": "0.1.0",
+      "source": "./"
+    }
+  ]
+}

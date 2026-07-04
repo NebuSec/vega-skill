@@ -1,0 +1,13 @@
+{
+  "name": "vega-cli",
+  "displayName": "Vega CLI",
+  "version": "0.1.0",
+  "description": "Run Vega security scans and query findings from the command line.",
+  "author": {
+    "name": "NebuSec",
+    "email": "vega@nebusec.ai"
+  },
+  "homepage": "https://github.com/NebuSec/vega-skill",
+  "repository": "https://github.com/NebuSec/vega-skill",
+  "keywords": ["security", "sast", "vulnerability", "scanning", "cli"]
+}
