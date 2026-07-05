@@ -38,7 +38,7 @@ Installs the latest release to `~/.local/bin`. Options via environment:`VEGA_VER
 Or via npm (requires Node.js ≥ 18):
 
 ```
-npm install -g @nebusec/vega-cli
+npm install -g @nebusec/vega
 ```
 
 Release assets, if you prefer manual download:

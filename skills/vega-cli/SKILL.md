@@ -33,7 +33,7 @@ curl -fsSL https://raw.githubusercontent.com/NebuSec/vega-skill/main/install.sh 
 
 Installs to `~/.local/bin` (override with `VEGA_INSTALL_DIR`; pin a version
 with `VEGA_VERSION=vX.Y.Z`). With Node.js available,
-`npm install -g @nebusec/vega-cli` works too. Binaries are also
+`npm install -g @nebusec/vega` works too. Binaries are also
 downloadable directly from
 <https://github.com/NebuSec/vega-skill/releases>.
 
