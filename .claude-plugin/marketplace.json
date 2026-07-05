@@ -9,7 +9,7 @@
     {
       "name": "vega-cli",
       "description": "Run Vega security scans and query findings from the command line.",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "source": "./"
     }
   ]
