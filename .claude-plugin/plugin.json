@@ -9,5 +9,11 @@
   },
   "homepage": "https://github.com/NebuSec/vega-skill",
   "repository": "https://github.com/NebuSec/vega-skill",
-  "keywords": ["security", "sast", "vulnerability", "scanning", "cli"]
+  "keywords": [
+    "security",
+    "sast",
+    "vulnerability",
+    "scanning",
+    "cli"
+  ]
 }
