@@ -1,7 +1,7 @@
 {
   "name": "vega-cli",
   "displayName": "Vega CLI",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Run Vega security scans and query findings from the command line.",
   "author": {
     "name": "NebuSec",

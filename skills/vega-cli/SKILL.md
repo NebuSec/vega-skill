@@ -17,7 +17,8 @@ subcommand is non-interactive and designed for programmatic use:
 - Add the global `--json` flag to any command to get the **raw backend
   JSON response** instead (compact, one object/array per line).
 - IDs are self-describing: projects `pg_…`, repositories `proj_…`, scans
-  `scan_…`, findings `finding_…`. Wherever a `<project>` or `<repo>`
+  `scan_…`; public findings use `VEGA-HIGH-00001`-style display IDs.
+  Finding display IDs are unique only within a repository. Wherever a `<project>` or `<repo>`
   argument is accepted, a unique name works too.
 - `vega <noun> --help` lists each subcommand; singular aliases work
   (`vega scan run` = `vega scans run`).
@@ -97,7 +98,6 @@ running); findings confirmed as duplicates are never listed.
 
 ```
 vega findings get <finding_id>          # summary/root cause/evidence/fix
-                                        # (finding ids are globally unique)
 vega findings get <id1> <id2> <id3>     # several at once — text separates
                                         # with ---, --json emits NDJSON
 vega findings get <finding_id> --full   # adds buggy code, attack path,
@@ -107,6 +107,22 @@ vega findings export --scan <scan_id> [--finding <id>]   # markdown report
 
 Fetch `get` only for findings you will act on; use `export` for a full
 human-readable report.
+
+Triage is repository-level and requires an explicit repository scope:
+
+```
+vega findings mark --repo <repo> pending|valid|invalid|fixed <finding...>
+vega findings triage --repo <repo> <status> <finding...>  # mark alias
+vega findings fix --repo <repo> <finding...>
+vega findings invalid --repo <repo> <finding...>
+vega findings ack --repo <repo> <finding...>              # valid, still open
+```
+
+`fix`, `invalid`, and `ack` are shortcuts for `fixed`, `invalid`, and `valid`.
+Multiple IDs run in argument order and are not transactional: on failure,
+earlier successful changes remain. With `--json`, multiple results are NDJSON.
+These commands change server state; confirm the exact repository, finding IDs,
+and desired status with the user before invoking them.
 
 ## Running a scan
 
