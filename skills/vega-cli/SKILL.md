@@ -4,7 +4,7 @@ description: Query Vega security-scan results and run security scans from
   the command line. Use when asked to scan code with Vega, check scan
   progress or cost, or list/inspect security findings for a project,
   repository, or scan. Provides projects/repos/scans/findings subcommands
-  with agent-friendly text output and raw-JSON mode.
+  with agent-friendly text and JSON output modes.
 ---
 
 # Vega CLI
@@ -14,8 +14,8 @@ subcommand is non-interactive and designed for programmatic use:
 
 - **stdout carries data only** — aligned columns for lists, markdown-style
   sections for details. Progress, warnings, and errors go to **stderr**.
-- Add the global `--json` flag to any command to get the **raw backend
-  JSON response** instead (compact, one object/array per line).
+- Add the global `--json` flag to any command to get machine-readable JSON
+  instead. Each command documents whether it emits one value or NDJSON.
 - IDs are self-describing: projects `pg_…`, repositories `proj_…`, scans
   `scan_…`; public findings use `VEGA-HIGH-00001`-style display IDs.
   Finding display IDs are unique only within a repository. Wherever a `<project>` or `<repo>`
@@ -41,15 +41,15 @@ downloadable directly from
 ## Setup
 
 Authentication, in precedence order: `VEGA_API_KEY` env var, else the
-credential stored by `vega auth login` (`--api-key vega_…` for headless,
-`--headless` for browser login over SSH). Backend URL: `VEGA_API_URL` env
-or `--api-url` (defaults to production).
+credential stored by `vega auth login`. Pass `--api-key vega_…` to store an
+API key or `--headless` to use device-code login directly; a failed browser
+launch also falls back to device-code login.
 
 Verify before doing anything else:
 
 ```
 vega auth status --json
-# {"signed_in":true,"source":"stored OAuth token","user_id":"…","email":"…",…}
+# {"signed_in":true,"source":"stored browser session","user":"user@example.com",…}
 # exit 3 when not signed in → run `vega auth login` or set VEGA_API_KEY
 ```
 
@@ -80,17 +80,23 @@ vega scans get <scan_id> -s          # ONE line — cheapest way to poll:
 
 ```
 vega findings list --scan <scan_id>            # or --project <p> / --repo <r>
-# FINDING_ID     SEV     CONF  STATUS     FILE                TITLE
-# VEGA-MEDI-00001 medium  high  candidate  app/…/inline.py     Inline publish does…
-# (stderr) total: 8  next_cursor: eyJz…
+# FINDING_ID      SEVERITY  CONFIDENCE  STATUS     FILE             TITLE
+# VEGA-MEDI-00001 medium    high        candidate  app/…/inline.py  Inline publish does…
+# (stderr) Showing 8 of 8 findings.
 ```
 
 Filters keep output (and your token use) small — prefer them over
 fetching everything: `--severity critical,high`, `--status confirmed`,
 `--file-prefix src/api/`, `--cwe CWE-89`, `-q "sql injection"`,
-`--limit N`. Page with `--cursor <next_cursor>` (cursor is on stderr in
-text mode, `next_cursor` in the JSON body), or pass `--all` to fetch every
-page.
+`--limit N`. The default limit is 50; the CLI fetches backend pages
+automatically until it reaches the requested maximum. Pass `--all` to return
+every matching finding.
+
+With `--json`, `findings list` emits one compact aggregate object:
+
+```
+{"findings":[…],"returned_count":8,"total_count":8,"truncated":false}
+```
 
 Visibility: findings still waiting in the dedup queue are hidden by
 default (add `--include-dedup-pending` to see them, e.g. while a scan is
