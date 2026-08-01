@@ -81,7 +81,7 @@ vega scans get <scan_id> -s          # ONE line — cheapest way to poll:
 ```
 vega findings list --scan <scan_id>            # or --project <p> / --repo <r>
 # FINDING_ID     SEV     CONF  STATUS     FILE                TITLE
-# finding_d0c7…  medium  high  candidate  app/…/inline.py     Inline publish does…
+# VEGA-MEDI-00001 medium  high  candidate  app/…/inline.py     Inline publish does…
 # (stderr) total: 8  next_cursor: eyJz…
 ```
 
@@ -97,16 +97,17 @@ default (add `--include-dedup-pending` to see them, e.g. while a scan is
 running); findings confirmed as duplicates are never listed.
 
 ```
-vega findings get <finding_id>          # summary/root cause/evidence/fix
-vega findings get <id1> <id2> <id3>     # several at once — text separates
-                                        # with ---, --json emits NDJSON
-vega findings get <finding_id> --full   # adds buggy code, attack path,
-                                        # root-cause sections (long!)
+vega findings get --scan <scan_id> <finding_id>      # summary/root cause/evidence/fix
+vega findings get --scan <scan_id> <id1> <id2>       # several from one scan;
+                                                      # --json emits NDJSON
+vega findings get --scan <scan_id> <finding_id> --full  # adds buggy code,
+                                                         # attack path and long sections
 vega findings export --scan <scan_id> [--finding <id>]   # markdown report
 ```
 
-Fetch `get` only for findings you will act on; use `export` for a full
-human-readable report.
+Finding display IDs are repository-local, so `get` requires the scan that
+contains them. Fetch `get` only for findings you will act on; use `export` for
+a full human-readable report.
 
 Triage is repository-level and requires an explicit repository scope:
 
