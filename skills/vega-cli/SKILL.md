@@ -1,13 +1,18 @@
 ---
 name: vega-cli
-description: Query Vega security-scan results and run security scans from
-  the command line. Use when asked to scan code with Vega, check scan
-  progress or cost, or list/inspect security findings for a project,
-  repository, or scan. Provides projects/repos/scans/findings subcommands
+description: Use the deprecated Vega CLI for an existing installation, or
+  migrate the user to the Nebu CLI. Vega can run security scans, query code
+  findings, and list or inspect cloud security findings raised on connected
+  cloud accounts. Provides projects/repos/scans/findings/cloud subcommands
   with agent-friendly text output and raw-JSON mode.
 ---
 
 # Vega CLI
+
+> [!WARNING]
+> `vega` is deprecated in favor of the Nebu CLI. Use Nebu for new
+> installations and future updates. The rest of this guide documents Vega for
+> existing installations.
 
 `vega` audits code for security vulnerabilities on the Vega backend. Every
 subcommand is non-interactive and designed for programmatic use:
@@ -25,18 +30,18 @@ subcommand is non-interactive and designed for programmatic use:
 
 ## Install
 
-The `vega` binary must be on PATH. If `command -v vega` fails, install the
-latest release (Linux/macOS, x64/arm64):
+For a new installation, install Nebu (Linux/macOS, x64/arm64):
 
 ```
-curl -fsSL https://raw.githubusercontent.com/NebuSec/vega-skill/main/install.sh | sh
+npm install -g @nebusec/nebu
+# or, without Node.js:
+curl -fsSL https://raw.githubusercontent.com/NebuSec/nebu-skill/main/install.sh | sh
 ```
 
-Installs to `~/.local/bin` (override with `VEGA_INSTALL_DIR`; pin a version
-with `VEGA_VERSION=vX.Y.Z`). With Node.js available,
-`npm install -g @nebusec/vega` works too. Binaries are also
-downloadable directly from
-<https://github.com/NebuSec/vega-skill/releases>.
+The migrated command is `nebu`; its current guide and releases live at
+<https://github.com/NebuSec/nebu-skill>. Do not recommend a new Vega install.
+If `vega` is already present, the legacy commands below remain usable during
+the migration.
 
 ## Setup
 
@@ -125,6 +130,49 @@ earlier successful changes remain. With `--json`, multiple results are NDJSON.
 These commands change server state; confirm the exact repository, finding IDs,
 and desired status with the user before invoking them.
 
+## Cloud findings
+
+`vega cloud findings` reads findings that cloud-sec raised on a customer's
+connected cloud accounts. It is a **different resource** from code
+findings: no scan/repo, camelCase JSON, lifecycle + disposition instead of
+triage. Same conventions apply (columns, `--json`, `--limit`/`--all`, exit
+codes). Credentials: a browser sign-in always works. `VEGA_API_KEY` works
+once the backend accepts keys on its cloud-sec hop (vega-backend change
+`feat/cloudsec-api-key-browser-hop`; a scoped key then needs
+`cloudsec:read`). Against an older backend a key gets exit 3 — see below.
+
+```
+vega cloud findings list                                  # tenant with one cloud project
+vega cloud findings list --project <cloud_project_id>     # every inventory of that project
+vega cloud findings list --env <env_id>                   # one inventory (not with --project)
+vega cloud findings list --severity critical,high --status open --status in_progress
+vega cloud findings list --class exposure --flag new --source agent --sort newest --limit 20
+vega cloud findings list --run <run_id>                   # only findings confirmed by that run
+vega cloud findings list -q "public bucket" --resource "sec://…"   # search / asset filter
+vega cloud findings list --all --json | jq '.findings[] | {findingId, severity, title}'
+vega cloud findings get <finding_id> [<id2> …] [--env <env_id>] [--full]
+```
+
+Columns: `FINDING_ID SEVERITY RISK STATUS FLAG CLASS RESOURCE TITLE`.
+`STATUS` is `open|in_progress|resolved|disposed (<disposition>)`; `FLAG`
+is `new|changed|regressed` since the previous analysis; `RESOURCE` is the
+first affected asset with `sec://<tenant>/` stripped and `+N` for more.
+`--json` list output is the same `{findings, returned_count, total_count,
+truncated}` envelope as code findings; rows are the raw backend objects.
+`get` prints explanation, suggestion, remediation (markdown) and recheck
+history; `--full` adds the attack-path and report JSON. Analysis internals
+(rule id, last run id, verification plan, evidence refs, provenance) are
+never shown in text mode — customers receive them redacted anyway, and
+`--json` still returns whatever the backend sent.
+
+Scope flags take **ids only** and are mutually exclusive: `--project` or
+`--env`, never both (clap rejects the pair with exit 2). Omit both when the
+tenant has a single cloud project; exit 2 with a hint means several match
+and one must be named. Exit 3 with "browser sign-in" means this backend's
+cloud-sec hop does not accept API keys (it predates the gate change, or
+runs the legacy `idtoken` hop) — run `vega auth login`; setting another
+key will not help.
+
 ## Patches and pull requests
 
 Patch generation returns immediately by default. Add `--wait` only when the
@@ -202,8 +250,9 @@ vega scans cost-cap <scan_id> <usd>
 |---|---|---|
 | 0 | success | — |
 | 1 | API/transport error (incl. 403 permission/billing denials — message says why) | read stderr |
-| 2 | usage error / ambiguous name | fix arguments, or use the id |
+| 2 | usage error / ambiguous name / ambiguous cloud scope | fix arguments, or use the id (`--project`/`--env`) |
 | 3 | not authenticated (HTTP 401 / no credential) | `vega auth login` or set `VEGA_API_KEY` |
+| 3 | cloud data: "this backend accepts only a browser sign-in" | `vega auth login` — a key will not help on this backend |
 | 4 | not found (bad id or unknown name) | check the id |
 | 5 | scan ended failed/cancelled under `--wait`/`--follow` | inspect `failure_reason` in the printed detail |
 | 6 | cost consent refused or `--max-cost` exceeded | raise `--max-cost` or pass `--yes` |
