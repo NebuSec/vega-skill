@@ -216,11 +216,13 @@ vega scans run --path . --yes --max-cost 20 --cost-cap 30 --wait
 Steps performed: index + zip the directory (respects `.vegaignore`) →
 upload as a new repository (`--project <p>` attaches it; `--repo <r>`
 reuses an existing repository instead of uploading) → wait for snapshot →
-cost estimate → consent gate → create scan.
+cost estimate → server-issued fixed-price quote → consent gate → create scan.
 
 **Cost consent (scans cost real money):**
 - The estimate always prints first: `estimated cost: $1.86 (p10 $0.70 – p90 $4.91), …`
-- `--max-cost <usd>`: abort with **exit 6** if the estimate exceeds it;
+- The binding offer prints next: `quoted price: $1.92 USD`. Confirmation
+  and automation limits use this server-issued price.
+- `--max-cost <usd>`: abort with **exit 6** if the quoted price exceeds it;
   otherwise counts as consent. This is the safest flag for agents.
 - `--yes`: unconditional consent. Without either, a non-TTY run exits 6.
 - `--cost-cap <usd>`: independent server-side spend cap (also settable
